@@ -1,0 +1,10 @@
+src/a049230
+*.o
+*.aux
+*.log
+*.out
+*.pdf
+__pycache__/
+*.pyc
+tmp/
+temp/

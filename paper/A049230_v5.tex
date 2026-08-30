@@ -1,0 +1,685 @@
+\documentclass[11pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{url}
+\geometry{margin=1in}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  citecolor=blue,
+  urlcolor=blue,
+  pdftitle={Exact Extension of OEIS A049230 through 27 Steps},
+  pdfauthor={Carlo Corti}
+}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{computationalresult}[theorem]{Computational Result}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\title{Exact Extension of OEIS A049230 through 27 Steps:\\
+Cubic-Orbit Enumeration at 19--22 and Published Partition-Function Data at 23--27}
+\author{Carlo Corti\\
+Independent researcher\\
+\texttt{carlo.corti@outlook.com}}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+OEIS A049230 counts rooted $n$-step self-avoiding walks on the simple cubic
+lattice having exactly two nearest-neighbour contacts between vertices that
+are nonconsecutive along the walk.
+Translations are removed by fixing the initial vertex, whereas rotations,
+reflections, and reversal remain distinct.  At the time of our audit, OEIS
+A049230 listed a contiguous prefix through $a(18)$.  Our literature search
+identified exact published partition-function coefficients that normalize to
+$a(23),\ldots,a(27)$.  Relative to the OEIS prefix, this left precisely four
+intervening values undetermined.  We compute them as
+\[
+\begin{aligned}
+a(19)&=2126459849880,&
+a(20)&=9600694064496,\\
+a(21)&=43090682243160,&
+a(22)&=192553331372616.
+\end{aligned}
+\]
+The computation enumerates genuinely three-dimensional walks modulo the full
+48-element cubic point group and reconstructs the rooted count by the exact
+identity
+\[
+ a(n)=3\,A033323(n)+48p_{n,2}^{(3)}.
+\]
+On the computational platform specified below, the frozen campaign used 2411
+deterministic recovery units in three segments and records 10232.08 seconds of
+accumulated per-unit wall-clock time.  An
+independent Java implementation directly reproduced $a(19)$; it differs in
+software realization and symmetry handling but shares the same exhaustive
+depth-first, incremental-contact method.  The normalized published values at
+$n=23,\ldots,27$ are not outputs of the campaign.  The resulting documented
+range is contiguous for $1\leq n\leq27$; within the evidence assembled in the
+audit of 26 August 2026, the first unresolved index is $n=28$.
+\end{abstract}
+
+\noindent\textbf{2020 Mathematics Subject Classification.}
+Primary 05A15; Secondary 82B41, 68W10.
+
+\noindent\textbf{Key words and phrases.}
+self-avoiding walk, interacting self-avoiding walk, exact enumeration,
+nearest-neighbour contact, cubic symmetry, OEIS.
+
+\section{Introduction and provenance}
+
+A self-avoiding walk (SAW) is a nearest-neighbour lattice path that visits no
+vertex twice.  Contact-resolved enumeration is a classical finite-lattice model
+of polymer--solvent interaction~\cite{FisherHiley1961}.  Nemirovsky, Freed,
+Ishinabe, and Douglas organized these counts by the number of coordinate
+dimensions actually spanned and introduced dimension-independent coefficients
+$p_{n,m}^{(l)}$~\cite{NemirovskyEtAl1992}.  Their framework fixes the symmetry
+normalization used below.
+
+OEIS A049230 was submitted by N.~J.~A. Sloane.  Petros Hadjicostas clarified
+its contact interpretation on 3 January 2019, and Sean A. Irvine supplied the
+displayed terms $a(12),\ldots,a(18)$ on 23 July 2021~\cite{OEISA049230}.  A
+live inspection on 26 August 2026 still displayed the contiguous range only
+through $a(18)$.  During our literature audit, we identified exact
+partition-function papers containing later isolated coefficients corresponding
+to $a(23),\ldots,a(27)$~
+\cite{LeeEtAl2012,HsiehEtAl2016EPJ,HsiehEtAl2016CPC}; the later study of
+Huang, Hsieh, and Chen independently confirms the exact-enumeration range
+through 27 steps, while referring to those partition-function sources for
+fixed-first-step partition polynomials~\cite{HuangEtAl2022}.  After exact
+normalization, this made $n=19,20,21,22$ the only intervening unresolved
+indices, rather than every index after 18.
+
+This paper reports an exhaustive computation of precisely those four values.
+It also normalizes the later published coefficients, thereby documenting a
+contiguous exact range through 27 without presenting published values as new
+campaign outputs.  The distinction matters both scientifically and for the
+provenance of the associated b-file.
+
+\section{Definition, indexing, and dimensional decomposition}
+
+\begin{definition}
+Let $w=(v_0,v_1,\ldots,v_n)$ be an ordered nearest-neighbour walk on
+$\mathbb Z^3$, rooted by $v_0=0$.  It is self-avoiding if its vertices are
+distinct.  Its number of contacts is
+\[
+ m(w)=\#\bigl\{\{i,j\}:0\leq i<j\leq n,\ j-i>1,
+                   \ \lVert v_i-v_j\rVert_1=1\bigr\}.
+\]
+The value $a(n)=A049230(n)$ is the number of such walks with $m(w)=2$.
+The vertex order is retained, so reversal is distinct; no rotation or
+reflection quotient is taken in $a(n)$.
+\end{definition}
+
+The walk has $n$ steps and $N=n+1$ monomers.  This conversion is essential
+when partition polynomials are indexed by monomer count.  In this paper,
+\[
+ Z_N(x)=\sum_{w\in\mathcal W_{N-1}^{(3)}}x^{m(w)},
+\]
+where $\mathcal W_{N-1}^{(3)}$ is the set of rooted ordered $(N-1)$-step
+simple-cubic SAWs with all six possible first-step directions.  Let
+$\widehat{\mathcal W}_{N-1}^{(3)}$ be the subset whose first step is $+x$, and
+write
+\[
+ \widehat Z_N(x)=
+ \sum_{w\in\widehat{\mathcal W}_{N-1}^{(3)}}x^{m(w)}.
+\]
+The cubic point group acts transitively on the six first-step directions
+without changing contacts, so
+\[
+ Z_N(x)=6\widehat Z_N(x),\qquad
+ a(n)=[x^2]Z_{n+1}(x)=6[x^2]\widehat Z_{n+1}(x).
+\]
+
+\begin{definition}
+For $d\geq1$, let $C_{n,m}(d)$ be the number of rooted ordered $n$-step SAWs
+on $\mathbb Z^d$ with exactly $m$ contacts, with all $2d$ first-step
+directions retained and with reversal distinct.  For $1\leq l\leq n$, let
+$p_{n,m}^{(l)}$ be the number of orbits of rooted ordered $n$-step SAWs on
+$\mathbb Z^l$ with exactly $m$ contacts whose step vectors use all $l$
+coordinate axes, under the order-$2^l l!$ hyperoctahedral group of signed
+coordinate permutations of $\mathbb Z^l$.  These walks are called genuinely
+$l$-dimensional; lower-dimensional walks are excluded from $p_{n,m}^{(l)}$.
+Embedding $\mathbb Z^l$ in any fixed coordinate $l$-subspace of $\mathbb Z^d$
+gives a bijection with the genuinely $l$-dimensional walks in that subspace.
+Thus the orbit count is independent of the ambient dimension, while the
+choice of subspace contributes the factor $\binom dl$ below.
+\end{definition}
+
+Nemirovsky et al.\ give the dimensional decomposition
+\begin{equation}
+ C_{n,m}(d)=\sum_{l=1}^{\min(n,d)}2^l l!\binom dl p_{n,m}^{(l)}.
+ \label{eq:dimension}
+\end{equation}
+This is Eq.~(5) on p.~1090 of their paper~\cite{NemirovskyEtAl1992}.
+
+\begin{proposition}
+For every $n\geq1$,
+\begin{equation}
+ a(n)=3\,A033323(n)+48p_{n,2}^{(3)}.
+ \label{eq:reconstruction}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+A one-dimensional SAW is a monotone straight walk, so it has no contact
+between nonconsecutive vertices and $p_{n,2}^{(1)}=0$.  OEIS A033323 uses the
+same step index, rooting, vertex order, and contact convention on the square
+lattice; hence
+\[
+ A033323(n)=C_{n,2}(2)=2^2 2!\,p_{n,2}^{(2)}=8p_{n,2}^{(2)}.
+\]
+Specializing Eq.~\eqref{eq:dimension} to $d=3$ gives
+\[
+ C_{n,2}(3)=24p_{n,2}^{(2)}+48p_{n,2}^{(3)}
+           =3A033323(n)+48p_{n,2}^{(3)}.
+\]
+Since $C_{n,2}(3)=a(n)$, the result follows.
+\end{proof}
+
+The derivation is structural, not a numerical fit, and the two input tables
+were joined on the mathematical index $n$.  In particular, the planar inputs
+for $n=19,\ldots,22$ originate in Table B1, pp.~4738--4739, of Bennett-Wood
+et al.\ (Table 4, pp.~26--28, in the corresponding preprint).  Its column
+$c_n(2)/4$ is $A033323(n)/4$ in the present notation, so multiplication by
+four recovers $A033323(n)$~\cite{BennettWoodEtAl1998,OEISA033323}.  For
+$n=19,\ldots,22$, the four recovered values coincide with the corresponding
+OEIS A033323 terms.  The OEIS record
+credits Hadjicostas with the source interpretation, Irvine with terms
+$a(20),\ldots,a(26)$, and Corti with $a(27),\ldots,a(29)$; the primary
+numerical provenance of all planar values used here remains the
+Bennett-Wood et al.\ table.
+
+\section{Symmetry and stabilizers}
+
+The full octahedral group $O_h$, equivalently the three-dimensional
+hyperoctahedral group, consists of the $2^3 3!=48$ signed coordinate
+permutations.  It acts on a rooted walk coordinatewise.  Its action is free on
+a genuinely three-dimensional ordered walk: an element fixing the ordered
+walk fixes every vertex, hence every step vector; because the walk contains
+three linearly independent step vectors, the element is the identity.
+Consequently every genuinely three-dimensional orbit has size 48.
+
+Planar walks behave differently.  Reflection through their supporting
+coordinate plane fixes every vertex, so they have a nontrivial stabilizer in
+the three-dimensional group.  Their contribution is therefore not obtained by
+blindly dividing the full count by 48.  Instead A033323 supplies the oriented
+count in one abstract square lattice and the factor 3 in
+Eq.~\eqref{eq:reconstruction} chooses one of the three coordinate planes.  This
+separation is why the reconstruction treats planar and genuinely
+three-dimensional strata independently.
+
+\begin{proposition}
+Every genuinely three-dimensional orbit has exactly one representative that
+satisfies all of the following conditions:
+\begin{enumerate}
+\item the first step is $+x$;
+\item the first step along the $y$-axis is $+y$, and no step along the $z$-axis
+      occurs before it;
+\item the first step along the $z$-axis is $+z$.
+\end{enumerate}
+\label{prop:canonical}
+\end{proposition}
+
+\begin{proof}
+The first condition chooses one of the six signed directions of the first
+step.  After it is fixed, the residual group has order eight.  Let $t_y$ and
+$t_z$ be the first times at which the image uses the $y$- and $z$-axes;
+genuine three-dimensionality makes both finite and distinct.  Of the identity
+and the transverse-axis transposition, exactly one gives $t_y<t_z$.  The two
+remaining sign freedoms then independently make the first $y$ step
+$+y$ and the first $z$ step $+z$.  Hence the transverse-axis ordering removes
+the residual swap, the two sign conditions remove the residual reflections,
+and all eight elements of the stabilizer of $+x$ are resolved uniquely.
+\end{proof}
+
+The frozen production search implements precisely these conditions: it fixes
+the first step to $+x$, rejects a $z$ step until a positive first $y$ step has
+occurred, rejects a negative first step along either transverse axis, and
+counts a state only after $z$ has been used.  Proposition~
+\ref{prop:canonical} therefore implements the factor 48 in
+Eq.~\eqref{eq:reconstruction}; reversal is never identified.
+
+The corresponding partial-walk admissibility predicate is closed under taking
+prefixes: a prefix of a canonical walk cannot have the wrong first step, use
+$z$ before $y$, or have a negative first use of either transverse axis; an axis
+not yet used creates no violation.  Since the contact count is also
+nondecreasing, every canonical target walk of length at least 10 has an
+admissible length-10 prefix with at most two contacts.  The predicate may
+therefore be enforced incrementally, and the depth-10 frontier is exhaustive.
+
+\section{Exhaustive enumeration}
+
+The enumerator is a single C17/OpenMP program.  For a maximum length $n$, each
+worker maintains a private byte-valued occupancy grid of side $2n+3$, padded
+by one lattice layer beyond every reachable coordinate.  It fixes the first
+step to $+x$ as in Proposition~\ref{prop:canonical}, then extends the walk in
+the deterministic direction order $+x,-x,+y,-y,+z,-z$.  A candidate vertex is
+rejected if it is already occupied.  Otherwise the number of newly created
+nonbonded contacts is
+\[
+ \#\{\hbox{occupied nearest neighbours of the candidate}\}-1,
+\]
+because the predecessor is the unique occupied bonded neighbour.  Contacts
+cannot disappear as a branch grows, so any branch exceeding two contacts is
+pruned.  At every depth $n$, a genuinely three-dimensional state with exactly
+two contacts contributes one to $p_{n,2}^{(3)}$.
+
+The implementation, build recipe, campaign outputs, and validation materials
+described in this paper form the accompanying project package~
+\cite{CortiPackage2026}.
+
+The search tree was split at depth 10 into 154271 deterministic prefix tasks,
+where a task is one admissible canonical partial walk together with its
+contact and transverse-axis state.  The tasks were grouped in generation order
+into 2411 recovery units, each a consecutive range of at most 64 tasks.  A
+segment is one operator invocation that completes whole recovery units until
+the configured time target or the final unit is reached.  The manifest is the
+durable table containing the frozen configuration, segment state, and one
+ordered record per completed unit, including its task interval, elapsed time,
+and per-depth counts.
+
+Each OpenMP worker used a private occupancy grid and private
+\texttt{uint64\_t} counters.  A critical merge performed checked additions and
+failed on overflow; the program's structural cap at $n=29$ is justified by the
+nonbacktracking orbit bound $p_{n,2}^{(3)}\leq5^{n-1}/8$, which is below the
+64-bit limit through that cap.  The manifest bound the frozen source and build
+identity to the configuration, recorded every completed unit exactly once,
+and published state by no-clobber atomic replacement.  The verifier regenerated
+the depth-10 frontier and required its task count to equal the manifest's
+154271 before aggregating all unit records.  Interrupted execution resumes
+only at a recovery-unit boundary, so segmentation changes neither the search
+space nor the arithmetic result.
+
+The official configuration used 8 OpenMP threads, split depth 10, unit size 64,
+and a 4500-second soft segment target.  The target computer had an AMD Ryzen 9
+7940HS processor (8 cores, 16 logical processors) and 64 GB DDR5 installed RAM;
+the operating system reported 61 GiB total memory.  It ran Linux Mint 22.3
+with 64-bit Linux kernel 6.17.0-42-generic.  The executable was built with GCC
+13.3.0 and GNU libgomp.  The relevant Makefile flags were
+\begin{quote}
+\small\ttfamily
+-O3 -flto -funroll-loops -fomit-frame-pointer -march=native\par
+-mtune=native -std=c17 -Wall -Wextra -Wpedantic -Wshadow\par
+-Wconversion -Wdouble-promotion -Wformat=2 -fopenmp -lm
+\end{quote}
+
+The campaign was run against that frozen software and environment.
+It completed all 2411 units in three normally terminating segments.
+Their individually rounded compute times were 4500, 4501, and 1231 seconds.  These displayed values sum to 10232 seconds.  The target is checked
+only before starting the next complete recovery unit, which explains the
+small overshoot of the first two segments.  These quantities are wall-clock
+compute time, not CPU time or campaign calendar time; manual pauses between
+segments are excluded.  They are specific to the stated hardware, software,
+compiler flags, and eight-thread configuration.
+
+\section{Validation and independence boundary}
+
+Validation addressed the mathematical predicate, symmetry normalization,
+indexing, persistence, and implementation separately.
+
+\begin{enumerate}
+\item The frozen executable reproduced $p_{n,2}^{(3)}$ for $1\leq n\leq18$.
+  Reconstruction by Eq.~\eqref{eq:reconstruction} reproduced the previous
+  A049230 prefix byte for byte.
+\item A direct oriented oracle exhaustively enumerated the full rooted target
+  set through $n=8$ without using the production canonical-orientation
+  predicate.  A separate signed-permutation oracle partitioned the same full
+  target sets into orbits, explicitly generated all 48 images of every orbit,
+  and verified both orbit size 48 and exactly one representative satisfying
+  Proposition~\ref{prop:canonical}.
+\item Crippen's independent Table I gives the number $N_2(n+1)$ of cubic
+  symmetry classes with two contacts for $5\leq n\leq11$.  In the present
+  notation it checks
+  \[
+    N_2(n+1)=p_{n,2}^{(2)}+p_{n,2}^{(3)}
+            =\frac{a(n)+3A033323(n)}{48},
+  \]
+  after reconciling rooting, reversal, and symmetry conventions~
+  \cite{Crippen2000}.  For $n=5,\ldots,11$, the common values are
+  $8,52,270,1446,7578,38473,191154$.
+\item The primary Shirai--Sakumichi attachment tabulates endpoint-constrained
+  counts $W_{n,m}(r)$ for endpoints $(r,0,0)$.  Strict aggregation at $m=2$
+  gave $\sum_rW_{19,2}(r)=6927757800$ and
+  $\sum_rW_{20,2}(r)=28720091852$; multiplying by the six axial directions
+  gives exact subsets 41566546800 and 172320551112~
+  \cite{ShiraiSakumichi2023}.  These marginals test depth-19 and depth-20
+  coverage but are not the unrestricted totals.
+\item The completed manifest passed strict continuity, integrity, source
+  identity, task-coverage, and final-state checks.  Thread-count and split-mode
+  equivalence tests, compiler warnings, two compiler families, static
+  analyzers, address/undefined-behaviour sanitizers, and Valgrind checks were
+  recorded before the campaign.  Unavailable ThreadSanitizer and system-call
+  tracing environments were recorded as unavailable, not as passes.
+\end{enumerate}
+
+After the result was frozen, a separate Java verifier based on Sean A.
+Irvine's jOEIS class \texttt{ExactContactsWalker} fixed the first step to
+$+x$, directly enumerated that complete rooted sector, and restored the six
+first-step directions by exact weighting.  It returned 2126459849880 at
+$n=19$.  It does not use the production cubic-orbit selector, so this run also
+checks the factor-48 normalization at that index.  The verifier was bound to a
+fixed jOEIS source revision recorded in the validation package.  The upstream
+sources and local harness were verified, compiled in a fresh temporary
+directory, and did not read the C campaign, A033323, the Python derivator, or
+the b-file~\cite{JoeisRepository}.
+
+This is an \emph{independent software reproduction}, not an independent
+mathematical method.  The two implementations differ in author, language,
+coordinate and occupancy representation, symmetry accounting, parallel
+decomposition, compiler chain, and result path.  Both nevertheless perform
+exhaustive depth-first SAW enumeration with incremental contact accumulation.
+The validation claim is deliberately limited to $a(19)$.
+
+\section{Results and provenance boundary}
+
+The computed orbit counts and exact reconstructions are shown in
+Table~\ref{tab:computed}.  The planar term is small but was retained exactly;
+no rounded or row-position arithmetic entered the derivation.
+
+\begin{table}[ht]
+\centering
+\caption{New campaign results.  The final column is evaluated exactly by
+Eq.~\eqref{eq:reconstruction}.}
+\label{tab:computed}
+\begin{tabular}{r@{\quad}r@{\quad}r@{\quad}r}
+\toprule
+$n$ & $p_{n,2}^{(3)}$ & $3A033323(n)$ & $a(n)$ \\
+\midrule
+19 & 44296694918   & 218493816  & 2126459849880 \\
+20 & 200002700951  & 564418848  & 9600694064496 \\
+21 & 897692330931  & 1450358472 & 43090682243160 \\
+22 & 4011450432806 & 3710597928 & 192553331372616 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{computationalresult}
+Subject to correct execution of the frozen C17/OpenMP enumerator and the
+integrity checks on its completed manifest, the exhaustive campaign determines
+the four A049230 values in Table~\ref{tab:computed}.  The independently
+implemented jOEIS run reproduces the first of these values.
+\end{computationalresult}
+
+The later rows have a different provenance.  Lee, Kim, and Lee print the full
+$N=24$ contact inventory with all first-step directions in Table I on p.~2;
+its contact-number row $K=2$ is 856234452257592, hence $a(23)$ directly~
+\cite{LeeEtAl2012}.  Hsieh, Chen, and Hu print fixed-first-step polynomials,
+denoted here by $\widehat Z_N$: $\widehat Z_{27}$ and $\widehat Z_{26}$ on p.~4
+and $\widehat Z_{25}$ on p.~5 of their EPJ paper, and $\widehat Z_{28}$ in
+Sec.~3.1 on p.~6 of their CPC paper.  Their $x^2$ coefficients for
+$\widehat Z_{25}$, $\widehat Z_{26}$, $\widehat Z_{27}$, and
+$\widehat Z_{28}$ are, respectively,
+\[
+632297080298076,
+2790018300205392,
+12274198909485704,
+53807607703672080.
+\]
+Multiplication by six and conversion $n=N-1$ give $a(24),\ldots,a(27)$~
+\cite{HsiehEtAl2016EPJ,HsiehEtAl2016CPC}.  Huang, Hsieh, and Chen later use
+exact end-to-end polynomials through 27 steps and explicitly direct readers to
+these earlier sources for the corresponding fixed-first-step polynomials~
+\cite[Appendix A]{HuangEtAl2022}.  Table~\ref{tab:chain} keeps the published
+data visibly separate from the campaign.
+
+\begin{table}[ht]
+\centering
+\caption{The completed exact chain.  ``Campaign'' means exhaustive output of
+the computation reported here; ``published'' means normalized primary-source
+data, not a campaign output.}
+\label{tab:chain}
+\begin{tabular}{r@{\quad}r@{\quad}l}
+\toprule
+$n$ & $a(n)$ & Evidence class \\
+\midrule
+19 & 2126459849880       & campaign; Java reproduction \\
+20 & 9600694064496       & campaign \\
+21 & 43090682243160      & campaign \\
+22 & 192553331372616     & campaign \\
+23 & 856234452257592     & published, Lee--Kim--Lee \\
+24 & 3793782481788456    & published, $6[x^2]\widehat Z_{25}$ \\
+25 & 16740109801232352   & published, $6[x^2]\widehat Z_{26}$ \\
+26 & 73645193456914224   & published, $6[x^2]\widehat Z_{27}$ \\
+27 & 322845646222032480  & published, $6[x^2]\widehat Z_{28}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The canonical b-file contains exactly the continuous index range $1$ through
+27.  Rows 1--18 are the unchanged prior prefix, rows 19--22 are the campaign
+reconstructions, and rows 23--27 are the normalized published coefficients.
+A dated literature and exact-data audit completed on 26 August 2026 searched
+the A-number, the notations $C_{n,2}(3)$ and $p_{n,2}^{(3)}$, cubic contact
+classes, exact $Z_N(x)$ coefficients, related OEIS records, forward and
+backward citations of the primary papers, supplementary data, and exact
+integer fingerprints.  An admissible datum was required to be a full
+unrestricted rooted two-contact count with enough convention information for
+exact normalization.  No such coefficient was found for $n=28$ or above.
+Accordingly, within the evidence assembled in this audit, 27 is the documented
+endpoint and 28 the first unresolved index.  This bounded statement neither
+claims universal nonexistence nor authorizes a recomputation of a later row.
+
+\section{Finite numerical observations}
+
+Two exact finite patterns provide useful checks but are not asymptotic claims.
+First, Eq.~\eqref{eq:reconstruction} implies divisibility by 24: both
+$3A033323(n)=24p_{n,2}^{(2)}$ and $48p_{n,2}^{(3)}$ are multiples of 24.
+Every b-file row through 27 satisfies this condition.  The stronger
+normalization check
+\[
+ \frac{a(n)-3A033323(n)}{48}\in\mathbb Z_{\geq0}
+\]
+also passes for each published row $n=23,\ldots,27$, giving respectively
+\[
+\begin{aligned}
+&17838020877573,\quad 79036635370667,\quad 348751024443185,\\
+&1534271679749333,\quad 6725942965307646.
+\end{aligned}
+\]
+These are derived orbit counts used as transcription checks, not additional
+campaign outputs.  The planar inputs in these five checks are
+$A033323(23),\ldots,A033323(27)=$
+\[
+3150044696,\quad 7994665480,\quad 20209319824,\quad
+50942982080,\quad 127962421824,
+\]
+respectively; they are the Bennett-Wood table values after the conversion
+specified above and coincide with the corresponding OEIS A033323 terms~
+\cite{BennettWoodEtAl1998,OEISA033323}.
+
+Second, over the newly computed block the planar share
+$3A033323(n)/a(n)$ decreases from $0.010275\%$ at $n=19$ to $0.001927\%$ at
+$n=22$ (the intermediate values are $0.005879\%$ and $0.003366\%$).  The
+successive ratios $a(n)/a(n-1)$ also decrease throughout the currently
+completed block, from 4.539875 at $n=19$ to 4.383798 at $n=27$.  These are
+descriptive observations on a short exact range.  They neither establish
+monotonicity beyond 27 nor estimate a critical exponent or growth constant.
+No new conjecture is proposed.
+
+\section{Conclusion}
+
+The literature audit first identified $n=19,20,21,22$ as the only unresolved
+indices intervening between the OEIS prefix through $a(18)$ and the normalized
+published values at $n=23,\ldots,27$.  The exhaustive orbit-reduced computation
+reported here determines those four values.  Exact dimensional reconstruction,
+old-prefix replay, small direct and explicit-orbit oracles, contact-class and
+axial checks, manifest validation, and a separate direct Java reproduction at
+$n=19$ give complementary evidence.  The boundary is
+therefore precise: the new campaign ends at 22, the documented sequence ends
+at 27, and, within the evidence assembled in the audit of 26 August 2026, 28
+remains unresolved.
+
+\section*{Data availability}
+
+The source, Makefile, frozen campaign manifest and result table, derived
+sequence table, canonical b-file, validators, independent jOEIS harness,
+completion report, and manuscript source are prepared for inclusion in a
+synchronized public release.  The repository and archive locators are listed
+in the References.  The GitHub URL identifies the intended public release
+repository; the Zenodo DOI is a draft placeholder that will be replaced after
+the first GitHub review and GitHub--Zenodo synchronization.  Neither location
+is claimed to be public at the time of this draft.
+
+\section*{AI use disclosure}
+
+Large language models were used as research, code-review,
+validation-planning, artifact-auditing, and drafting assistants during the
+A049230 project.  The preserved substantive records identify OpenAI Codex and
+review systems from the ChatGPT, Claude, DeepSeek, Gemini, Grok, Kimi, Lumo,
+Meta, MiniMax, Qwen, and Z families.  They are named at family level where
+exact model-version metadata were not consistently available; no missing
+version identifier has been reconstructed from inference.
+
+\textbf{Mathematical analysis.}
+LLMs assisted in restating the dimensional decomposition, challenging the
+cubic-orbit and planar-stabilizer arguments, locating step/monomer and
+first-step normalization risks, and identifying exact checks from contact
+polynomials and related sequences.  Accepted statements were checked against
+the OEIS snapshots, primary papers, exact arithmetic, the direct rooted oracle,
+and the explicit 48-image orbit oracle.  Conversational assertions were not
+treated as mathematical evidence.  In the second external manuscript round,
+several independent reviews identified the omitted transverse-axis ordering
+condition in the written canonical rule.  The correction in Proposition~
+\ref{prop:canonical} was accepted only after direct reconciliation with the
+frozen C source and the exhaustive small-$n$ orbit oracle.
+
+\textbf{Algorithm and code.}
+OpenAI ChatGPT/Codex and Claude-family systems supplied the final corrective
+code reviews; systems from the other named families contributed substantive
+review artifacts at earlier stages.  Their work included static or dynamic
+code review, adversarial test design, persistence analysis, parser and
+output-boundary review, and artifact inspection.  The final numerical claims
+rest on the frozen C17 program and build recipe, the completed manifest and result table,
+known-term replay, cross-thread and split-depth tests, bounded direct and orbit
+oracles, axial-data checks, the arithmetic derivator, and the separate jOEIS
+reproduction at $n=19$.  Shared-backend checks and unavailable tool evidence
+were not promoted to independent proofs.
+
+\textbf{Project workflow.}
+AI systems assisted in organizing bounded review rounds, comparing findings,
+maintaining evidence boundaries, and preparing operator-facing runbooks.  They
+did not launch or operate the official computation.  Carlo Corti authorized,
+started, monitored, and completed the campaign and made the scientific and
+editorial decisions.
+
+\textbf{Manuscript.}
+Codex assisted with literature research, drafting, claim-to-source auditing,
+arithmetic consistency checks, and LaTeX diagnostics.  Every numerical result
+retained in this revision was checked against a result table, the canonical
+b-file, the completed manifest, validator output, exact arithmetic, or a cited
+primary source.  The final claims depend on those artifacts and sources, not
+on LLM conversation.
+
+Carlo Corti takes full scientific responsibility for the mathematical
+statements, algorithm, implementation, numerical results, validation
+boundaries, and conclusions of this paper.
+
+\clearpage
+\begin{thebibliography}{99}
+\sloppy
+\raggedright
+
+\bibitem{FisherHiley1961}
+M.~E. Fisher and B.~J. Hiley,
+\newblock Configuration and free energy of a polymer molecule with solvent
+interaction,
+\newblock \emph{J. Chem. Phys.} \textbf{34} (1961), 1253--1267.
+\url{https://doi.org/10.1063/1.1731729}.
+
+\bibitem{NemirovskyEtAl1992}
+A.~M. Nemirovsky, K.~F. Freed, T. Ishinabe, and J.~F. Douglas,
+\newblock Marriage of exact enumeration and $1/d$ expansion methods: lattice
+model of dilute polymers,
+\newblock \emph{J. Stat. Phys.} \textbf{67} (1992), 1083--1108.
+\url{https://doi.org/10.1007/BF01049010}.
+
+\bibitem{Crippen2000}
+G.~M. Crippen,
+\newblock Enumeration of cubic lattice walks by contact class,
+\newblock \emph{J. Chem. Phys.} \textbf{112} (2000), 11065--11068.
+\url{https://doi.org/10.1063/1.481746}.
+
+\bibitem{BennettWoodEtAl1998}
+D. Bennett-Wood, I.~G. Enting, D.~S. Gaunt, A.~J. Guttmann, J.~L. Leask,
+A.~L. Owczarek, and S.~G. Whittington,
+\newblock Exact enumeration study of free energies of interacting polygons and
+walks in two dimensions,
+\newblock \emph{J. Phys. A: Math. Gen.} \textbf{31} (1998), 4725--4741.
+\url{https://doi.org/10.1088/0305-4470/31/20/010}.
+
+\bibitem{LeeEtAl2012}
+J.~H. Lee, S.-Y. Kim, and J. Lee,
+\newblock Exact partition function zeros of a polymer on a simple cubic
+lattice,
+\newblock \emph{Phys. Rev. E} \textbf{86} (2012), 011802.
+\url{https://doi.org/10.1103/PhysRevE.86.011802}.
+
+\bibitem{HsiehEtAl2016EPJ}
+Y.-H. Hsieh, C.-N. Chen, and C.-K. Hu,
+\newblock Exact partition functions of interacting self-avoiding walks on
+lattices,
+\newblock \emph{EPJ Web Conf.} \textbf{108} (2016), 01005.
+\url{https://doi.org/10.1051/epjconf/201610801005}.
+
+\bibitem{HsiehEtAl2016CPC}
+Y.-H. Hsieh, C.-N. Chen, and C.-K. Hu,
+\newblock Efficient algorithm for computing exact partition functions of
+lattice polymer models,
+\newblock \emph{Comput. Phys. Commun.} \textbf{209} (2016), 27--33.
+\url{https://doi.org/10.1016/j.cpc.2016.08.006}.
+
+\bibitem{HuangEtAl2022}
+S.-S. Huang, Y.-H. Hsieh, and C.-N. Chen,
+\newblock Exact enumeration approach to estimate the theta temperature of
+interacting self-avoiding walks on the simple cubic lattice,
+\newblock \emph{Polymers} \textbf{14} (2022), 4536.
+\url{https://doi.org/10.3390/polym14214536}.
+
+\bibitem{ShiraiSakumichi2023}
+N.~C. Shirai and N. Sakumichi,
+\newblock Solvent-induced negative energetic elasticity in a lattice polymer
+chain,
+\newblock \emph{Phys. Rev. Lett.} \textbf{130} (2023), 148101.
+\url{https://doi.org/10.1103/PhysRevLett.130.148101}.
+
+\bibitem{OEISA049230}
+N.~J.~A. Sloane, P. Hadjicostas, S.~A. Irvine, et al.,
+\newblock The On-Line Encyclopedia of Integer Sequences, A049230,
+\newblock \url{https://oeis.org/A049230}, accessed 26 August 2026.
+
+\bibitem{OEISA033323}
+N.~J.~A. Sloane, P. Hadjicostas, S.~A. Irvine, C. Corti, et al.,
+\newblock The On-Line Encyclopedia of Integer Sequences, A033323,
+\newblock \url{https://oeis.org/A033323}, accessed 26 August 2026.
+
+\bibitem{JoeisRepository}
+S.~A. Irvine et al.,
+\newblock jOEIS: Java programs for integer sequences,
+\newblock \url{https://github.com/archmageirvine/joeis}, accessed 26 August
+2026.
+
+\bibitem{CortiPackage2026}
+C. Corti,
+\newblock \emph{A049230: Exact simple-cubic-lattice two-contact enumeration},
+\newblock planned GitHub repository and Zenodo archive, 2026.
+\url{https://github.com/carcorti/A049230}.
+\url{https://doi.org/10.5281/zenodo.xxxxxxxx}.
+The Zenodo DOI placeholder will be replaced after the first GitHub review.
+
+\end{thebibliography}
+
+\end{document}

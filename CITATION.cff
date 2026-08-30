@@ -1,0 +1,38 @@
+cff-version: 1.2.0
+message: "If you use this A049230 computation package, please cite it using the metadata below."
+type: software
+title: "A049230: Exact simple-cubic-lattice two-contact enumeration"
+authors:
+  - family-names: Corti
+    given-names: Carlo
+    email: carlo.corti@outlook.com
+repository-code: "https://github.com/carcorti/A049230"
+url: "https://doi.org/10.5281/zenodo.xxxxxxxx"
+doi: "10.5281/zenodo.xxxxxxxx"
+version: "v1.0"
+date-released: 2026-08-31
+license: MIT
+keywords:
+  - OEIS
+  - A049230
+  - self-avoiding walks
+  - exact enumeration
+  - lattice polymers
+  - computational combinatorics
+abstract: >-
+  Reproducibility package for the exact extension of OEIS A049230 through
+  27 steps. It contains the frozen C17/OpenMP enumerator and Makefile used for
+  the exhaustive campaign through 22 steps, the complete campaign state and
+  result, the canonical b-file, exact literature-derived terms through 27,
+  bounded Python oracles, a pinned jOEIS verifier, and the provisional LaTeX
+  manuscript source.
+preferred-citation:
+  type: article
+  authors:
+    - family-names: Corti
+      given-names: Carlo
+      email: carlo.corti@outlook.com
+  title: "Exact Extension of OEIS A049230 through 27 Steps: Cubic-Orbit Enumeration at 19--22 and Published Partition-Function Data at 23--27"
+  year: 2026
+  doi: "10.5281/zenodo.xxxxxxxx"
+  url: "https://doi.org/10.5281/zenodo.xxxxxxxx"
