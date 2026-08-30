@@ -51,6 +51,7 @@ unresolved index. This conclusion does not authorize another computation.
 
 ## Publication state
 
-This directory is a raw GitHub publication package. It has not been committed,
-tagged, released, uploaded, or synchronized with Zenodo. The DOI remains the
-author-required placeholder until Carlo Corti supplies the verified locator.
+The public repository is `https://github.com/carcorti/A049230`, and the stable
+Zenodo concept DOI is `10.5281/zenodo.22171393`. This directory is the final
+release candidate for GitHub release `v1.0.1`; publishing that release is the
+remaining external action that triggers the corresponding Zenodo version.

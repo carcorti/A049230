@@ -67,15 +67,15 @@ normalization. Crippen, the axial attachment, bounded oracles, and jOEIS are
 validation providers and do not extend the endpoint. The maximal contiguous
 range is `n=1..27`. At `n=28`, A033323 alone is insufficient: an admissible
 unrestricted A049230 count or genuinely three-dimensional orbit count is not
-available. No new campaign is authorized or needed for this raw package.
+available. No new campaign is authorized or needed for this release package.
 
 ## Package boundary
 
 External reviews, reviewer prompts, local OEIS/editorial material, primary
 article PDFs, calibration state, compiled binaries, and transient logs are not
-public package artifacts. The provisional TeX source remains versioned. Hashes
-and exact paths are retained here as reproducibility metadata and are not
-inserted into the scientific manuscript.
+public package artifacts. The final unversioned TeX source and corresponding
+PDF are public artifacts. Hashes and exact paths are retained here as
+reproducibility metadata and are not inserted into the scientific manuscript.
 
 The public jOEIS launcher is a portable publication wrapper. It removes only a
 workstation-specific JDK fallback path from the executed local launcher. The
@@ -83,4 +83,4 @@ Java sources, pinned upstream commit, upstream hashes, CLI contract, and
 expected result are unchanged. A fresh full public-wrapper run on 26 August
 2026 passed at `n=19` with exact result `2126459849880` and verifier elapsed
 time 3189 seconds. The stage remains long, network-dependent, and without a
-checkpoint, but is no longer deferred for this raw package.
+checkpoint, but is included in the validation record for this release package.

@@ -12,7 +12,8 @@ import sys
 
 ROOT = Path(__file__).resolve().parent.parent
 CHECKSUMS = ROOT / "validation" / "checksums.sha256"
-BINARY_FILES = {"figures/A049230_infographic.png"}
+PNG_FILES = {"figures/A049230_infographic.png"}
+PDF_FILES = {"paper/A049230.pdf"}
 EXPECTED_FILES = {
     ".gitignore",
     "CITATION.cff",
@@ -23,7 +24,8 @@ EXPECTED_FILES = {
     "data/b049230.txt",
     "data/certified_terms.tsv",
     "figures/A049230_infographic.png",
-    "paper/A049230_v5.tex",
+    "paper/A049230.pdf",
+    "paper/A049230.tex",
     "results/a049230.tsv",
     "results/p3_orbits.tsv",
     "src/Makefile",
@@ -96,7 +98,7 @@ def main() -> int:
     }
     links = [path for path in ROOT.rglob("*") if path.is_symlink()]
     if links:
-        fail("symbolic links are not allowed in the raw package")
+        fail("symbolic links are not allowed in the release package")
     if files != EXPECTED_FILES:
         missing = sorted(EXPECTED_FILES - files)
         extra = sorted(files - EXPECTED_FILES)
@@ -109,18 +111,19 @@ def main() -> int:
         fail("the package must contain exactly one README.md")
     if any(len(Path(name).name) > 25 for name in files):
         fail("a public basename exceeds 25 characters")
-    if any(Path(name).suffix.lower() == ".pdf" for name in files):
-        fail("PDF files are excluded from the raw package")
-
     decoded: dict[str, str] = {}
     for name in sorted(files):
         payload = (ROOT / name).read_bytes()
-        if name in BINARY_FILES:
+        if name in PNG_FILES:
             if not payload.startswith(b"\x89PNG\r\n\x1a\n") or len(payload) < 24:
                 fail(f"{name}: invalid PNG signature or truncated header")
             width, height = struct.unpack(">II", payload[16:24])
             if (width, height) != (1600, 900):
                 fail(f"{name}: expected 1600x900 PNG, found {width}x{height}")
+            continue
+        if name in PDF_FILES:
+            if not payload.startswith(b"%PDF-") or b"%%EOF" not in payload[-1024:]:
+                fail(f"{name}: invalid PDF header or missing terminal EOF marker")
             continue
         if not payload or b"\0" in payload or b"\r" in payload:
             fail(f"{name}: empty file, NUL byte, or CR byte")
@@ -137,12 +140,14 @@ def main() -> int:
     )
     if "/home/" in public_text:
         fail("a workstation-local absolute path is present")
-    if re.search(r"A049230_v[1234](?:\.|\b)", public_text):
-        fail("a superseded manuscript basename is referenced")
+    if re.search(r"A049230_v[0-9]+(?:\.|\b)", public_text):
+        fail("a versioned manuscript basename is referenced")
+    if re.search(r"zenodo\.[xX]{4,}", public_text):
+        fail("an unresolved Zenodo DOI sentinel remains in the release package")
     if re.search(r"\bSofia\b", public_text, re.IGNORECASE):
         fail("the excluded reviewer alias is present")
-    if sorted(path.name for path in (ROOT / "paper").iterdir()) != ["A049230_v5.tex"]:
-        fail("the provisional paper inventory is not exactly A049230_v5.tex")
+    if sorted(path.name for path in (ROOT / "paper").iterdir()) != ["A049230.pdf", "A049230.tex"]:
+        fail("the final paper inventory is not exactly A049230.tex and A049230.pdf")
     readme = decoded["README.md"]
     for name in sorted(EXPECTED_FILES - {"README.md"}):
         if name not in readme:
@@ -151,12 +156,14 @@ def main() -> int:
     cff = decoded["CITATION.cff"]
     if 'repository-code: "https://github.com/carcorti/A049230"' not in cff:
         fail("CITATION.cff repository-code mismatch")
-    if 'version: "v1.0"' not in cff:
-        fail("CITATION.cff provisional version mismatch")
-    if cff.count("10.5281/zenodo.xxxxxxxx") != 4:
-        fail("CITATION.cff must contain all four DOI placeholders")
-    if decoded["paper/A049230_v5.tex"].count("10.5281/zenodo.xxxxxxxx") != 1:
-        fail("the provisional manuscript DOI placeholder changed")
+    if 'version: "v1.0.1"' not in cff:
+        fail("CITATION.cff release version mismatch")
+    if cff.count("10.5281/zenodo.22171393") != 4:
+        fail("CITATION.cff must contain the verified concept DOI four times")
+    if decoded["paper/A049230.tex"].count("10.5281/zenodo.22171393") != 1:
+        fail("the final manuscript must contain the verified concept DOI once")
+    if "*.pdf" in decoded[".gitignore"]:
+        fail(".gitignore excludes the published PDF")
     notice = decoded["NOTICE.md"]
     if "CC BY 4.0" not in notice or "not relicensed under MIT" not in notice:
         fail("third-party axial-data licensing is not explicit")

@@ -40,7 +40,7 @@ evidence audit dated 26 August 2026.
 ```text
 .gitignore                         generated and local-only exclusions
 README.md                          package overview
-CITATION.cff                       provisional citation metadata for v1.0
+CITATION.cff                       citation metadata for release v1.0.1
 LICENSE                            MIT license
 NOTICE.md                          third-party attribution and license boundary
 figures/A049230_infographic.png    illustrated n=5 two-contact example
@@ -69,10 +69,11 @@ validation/joeis/A049230Verifier.java independent Java harness
 validation/joeis/run_verifier.sh   pinned jOEIS fetch/build runner
 validation/joeis/joeis_notes.md    jOEIS scope and execution notes
 validation/validation_notes.md     evidence classes and package boundary
-validation/validation_summary.md   checks executed for this raw package
+validation/validation_summary.md   checks executed for release v1.0.1
 validation/completion.md           campaign and endpoint completion report
 validation/checksums.sha256        public-file checksum inventory
-paper/A049230_v5.tex               provisional manuscript source
+paper/A049230.tex                  final manuscript source
+paper/A049230.pdf                  rendered final manuscript
 ```
 
 External paper/code reviews, OEIS editorial files, primary-source PDFs,
@@ -93,7 +94,7 @@ standard tools: awk, cmp, cp, curl, grep, mktemp, sed, sha256sum
 ```
 
 A JDK with `java` and `javac` is required only for the jOEIS stage. TeX Live is
-required only for the optional manuscript-source check.
+required only to rebuild or check the manuscript.
 
 ## Build
 
@@ -121,7 +122,8 @@ archived 2411-unit campaign state read-only, reconstructs `a(1..22)`, checks
 the published checkpoints and Crippen values, aggregates the axial data, and
 removes the generated executable.
 
-The provisional TeX source can be compiled twice without producing a PDF:
+The final TeX source can be checked twice in draft mode without replacing the
+published PDF:
 
 ```sh
 sh validation/run.sh paper
@@ -183,11 +185,11 @@ raw `validation/run/results.tsv` and the historical fixture
 
 ## Paper and citation state
 
-The provisional manuscript is `paper/A049230_v5.tex`. No PDF is included.
-Use `CITATION.cff` for citation metadata. The intended repository URL is
-`https://github.com/carcorti/A049230`; version `v1.0` and the Zenodo DOI are
-provisional. The literal DOI `10.5281/zenodo.xxxxxxxx` remains an intentional
-placeholder until Carlo Corti supplies the verified archive locator.
+The final manuscript source is `paper/A049230.tex`, with the corresponding
+rendered document at `paper/A049230.pdf`. Use `CITATION.cff` for citation
+metadata. The definitive GitHub release is `v1.0.1`; the public repository is
+`https://github.com/carcorti/A049230`, and its stable Zenodo concept DOI is
+`https://doi.org/10.5281/zenodo.22171393`.
 
 Original repository software and supporting material are distributed under
 the MIT License; see `LICENSE`. The third-party axial data file remains under

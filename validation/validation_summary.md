@@ -1,21 +1,23 @@
 # Validation summary
 
-**Date:** 27 August 2026  
-**Scope:** raw local GitHub publication package for OEIS A049230  
-**Verdict:** complete pre-upload raw-package validation PASS
+**Date:** 30 August 2026  
+**Scope:** final GitHub release candidate `v1.0.1` for OEIS A049230  
+**Verdict:** complete release-package validation PASS
 
 ## Executed public-package checks
 
 | Check | Public command | Result |
 | --- | --- | --- |
 | Data, provenance, manifest identity, and endpoint | `python3 validation/check_data.py` | PASS |
-| Public-tree inventory, policy, formats, and checksums | `python3 validation/check_package.py` | PASS |
+| Public-tree inventory, policy, formats, and checksums | `python3 validation/check_package.py` | PASS, 36 files |
 | Publication figure | PNG signature, dimensions, inventory, and checksum | PASS, 1600 x 900 |
 | Required terminal empty records | `python3 validation/check_blank.py data/b049230.txt data/b033323.txt data/certified_terms.tsv` | PASS |
 | Complete quick runner | `sh validation/run.sh quick` | PASS |
 | Frozen Makefile bounded regression | `make -C src test` | PASS in disposable `n=8` states |
-| Provisional manuscript, two draft-mode passes | `sh validation/run.sh paper` | PASS; no PDF produced |
+| Final manuscript source, two draft-mode passes | `sh validation/run.sh paper` | PASS; no warning or error |
+| Final rendered manuscript | two normal `pdflatex` passes, Poppler inspection, and page rendering | PASS; 10 pages, no warning or visual defect |
 | Manuscript publication policy | bundled deterministic policy audit | PASS, 13/13 gates |
+| Epistemic chronology | chronology ledger, pre-event test, and cross-section audit | `EPISTEMIC CHRONOLOGY PASS` |
 | Citation YAML parse | Python `yaml.safe_load` plus field assertions | PASS |
 | Citation CFF schema | `cffconvert --validate --infile CITATION.cff` | PASS, CFF 1.2.0 |
 | License and third-party boundary | root `LICENSE`, `NOTICE.md`, CFF metadata | PASS; MIT original work, axial data CC BY 4.0 |
@@ -24,7 +26,8 @@
 | Canonical workspace/public b-file identity | byte comparison | PASS |
 | Campaign state/result identity | byte comparison | PASS |
 | Filename budget | every public basename at most 25 characters | PASS |
-| Publication boundary | no review directories, local absolute paths, PDF, or binary | PASS |
+| Public locators | GitHub HTTP response and Zenodo DOI/API resolution | PASS; repository public, stable concept DOI verified |
+| Publication boundary | no review directories, local absolute paths, or generated executable | PASS; final TeX and PDF included intentionally |
 
 The quick runner built the copied C source, reproduced `p3(1..8)`, matched the
 direct and explicit-orbit Python oracles, audited the frozen public inventory,
@@ -79,10 +82,13 @@ time is 10232.08 seconds.
 
 The jOEIS stage remains separate because it requires network access and about
 53 minutes with no checkpoint. The fresh public-wrapper run returned exact
-stdout `19 2126459849880`. This directory is ready for the first raw GitHub
-upload and Carlo's inspection; it is not final-release-ready until the
-intentional DOI placeholders are resolved through the stated GitHub--Zenodo
-workflow.
+stdout `19 2126459849880`. The public repository
+`https://github.com/carcorti/A049230` returned HTTP 200. The stable concept DOI
+`10.5281/zenodo.22171393` resolved to the current published Zenodo record
+`10.5281/zenodo.22171394`, whose metadata identify release `v1.0`. The local
+package is the final candidate for GitHub release `v1.0.1`; the pre-trigger
+version difference is expected, and the GitHub release will initiate the
+corresponding Zenodo synchronization.
 
 ## Core SHA-256 identities
 
@@ -102,16 +108,16 @@ workflow.
 | `validation/joeis/Animal.java` | `705d0471baf3d65a9b1ca7be80a740f87ed6ad95ce2081818bd01b1211be61b2` |
 | `validation/joeis/A049230Verifier.java` | `ef37a73f90128b58a5ae60d0802a0e4cb6745ecfa497dddf01ad3070590e8d54` |
 | `validation/joeis/run_verifier.sh` | `43fc8a145d6c7e58981e62f2afc1f5e1fcdd7b8f8fa7897f9b4c8e1f4a6145cf` |
-| `paper/A049230_v5.tex` | `dfa6a646650e3bfb24b15f40a3a7f117136dadba1086b5ab96ffa5d089a91e03` |
-| `CITATION.cff` | `50758f547884cdf4d2089d8bfa92e8738e78ff6c2874cc31d2fd1262187120cd` |
+| `paper/A049230.tex` | `9f1a8bf80154b6614629cb6006092ca828a278b7fedb8976eed13577da634509` |
+| `paper/A049230.pdf` | `535ca2ed05f3cc95f64e583abf91692841cebe6da43023adbeb534de35ffccd5` |
+| `CITATION.cff` | `3643450237a906ed5e07346b4761f312984dcbdf28703700d3bbce2b9e874c7d` |
 
 The complete public-tree inventory is recorded in `checksums.sha256`, excluding
 that checksum file itself. Any later file change invalidates the affected row
 and requires a fresh validation/checksum sweep.
 
-## Deferred release work
+## Remaining external publication actions
 
-- Carlo's inspection and approval of the raw package;
-- official GitHub release/version decision if different from provisional v1.0;
-- verified Zenodo locator replacing every DOI sentinel occurrence together;
-- final public-tree, link, checksum, b-file, and synchronization audit.
+- publish GitHub release `v1.0.1` from these frozen package bytes;
+- confirm that the automatic Zenodo synchronization creates the corresponding
+  release and preserves concept DOI `10.5281/zenodo.22171393`.

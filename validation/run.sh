@@ -84,10 +84,10 @@ paper)
     esac
   }
   trap cleanup EXIT HUP INT TERM
-  cp "$root/paper/A049230_v5.tex" "$test_root/A049230_v5.tex"
-  (cd "$test_root" && pdflatex -interaction=nonstopmode -halt-on-error -draftmode A049230_v5.tex >/dev/null)
-  (cd "$test_root" && pdflatex -interaction=nonstopmode -halt-on-error -draftmode A049230_v5.tex >/dev/null)
-  if grep -Eq 'undefined|Overfull|Underfull|LaTeX Warning|! ' "$test_root/A049230_v5.log"; then
+  cp "$root/paper/A049230.tex" "$test_root/A049230.tex"
+  (cd "$test_root" && pdflatex -interaction=nonstopmode -halt-on-error -draftmode A049230.tex >/dev/null)
+  (cd "$test_root" && pdflatex -interaction=nonstopmode -halt-on-error -draftmode A049230.tex >/dev/null)
+  if grep -Eq 'undefined|Overfull|Underfull|LaTeX Warning|! ' "$test_root/A049230.log"; then
     echo "paper log contains a warning or error" >&2
     exit 1
   fi

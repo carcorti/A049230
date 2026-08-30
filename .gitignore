@@ -3,7 +3,10 @@ src/a049230
 *.aux
 *.log
 *.out
-*.pdf
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk
 __pycache__/
 *.pyc
 tmp/
